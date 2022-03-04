@@ -2,6 +2,7 @@ const exitOnError = require('../utils/exit-on-error');
 const connect = require('../utils/connect');
 const inspectResponse = require('../utils/inspect-response');
 const bs58 = require('bs58');
+const TXParser = require('../../near-tx-parser');
 
 module.exports = {
     command: 'tx-status <hash>',
@@ -26,13 +27,18 @@ module.exports = {
         }
         accountId = accountId || argv.accountId || argv.masterAccount;
 
-        if (!accountId) {
-            throw new Error('Please specify account id, either as part of transaction hash or using --accountId flag.');
+        if(typeof process.env['NEAR_USE_TX_PARSER'] == 'undefined' || process.env['NEAR_USE_TX_PARSER'] == 'STACK_TRACE'){
+            if (!accountId) {
+                throw new Error('Please specify account id, either as part of transaction hash or using --accountId flag.');
+            }
         }
 
         const status = await near.connection.provider.txStatus(bs58.decode(hash), accountId);
-        console.log(`Transaction ${accountId}:${hash}`);
-        console.log(inspectResponse.formatResponse(status));
+        let txp = new TXParser();
+        await txp.parse(status);  
+    
+        // console.log(`Transaction ${accountId}:${hash}`);
+        // console.log(inspectResponse.formatResponse(status));
 
     })
 };

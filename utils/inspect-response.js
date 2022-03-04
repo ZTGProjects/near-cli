@@ -33,8 +33,8 @@ const prettyPrintResponse = (response, options) => {
 };
 
 const prettyPrintError = (error, options) => {
-    if (checkForAccDoesNotExist(error, options)) return;
-
+    //if (checkForAccDoesNotExist(error, options)) return;
+    
     console.error('An error occured');
     console.error(error.stack);
     console.error(formatResponse(error));

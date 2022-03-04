@@ -91,7 +91,12 @@ async function createAccount(options) {
         // Subaccounts (short.alice.near, even.more.bob.test, and eventually peter.potato)
         // Check that master account TLA matches
         if (!options.accountId.endsWith(`.${options.masterAccount}`)) {
-            throw new Error(`New account doesn't share the same top-level account. Expecting account name to end in ".${options.masterAccount}"`);
+            let response = `New account doesn't share the same top-level account. Expecting account name to end in ".${options.masterAccount}"`;
+            if(process.env['NEAR_USE_TX_PARSER'] != 'undefined' && process.env['NEAR_USE_TX_PARSER'] != "STACK_TRACE"){
+                console.log(response);
+                return true;
+            }    
+            throw new Error(response);
         }
 
         // Warn user if account seems to be using wrong network, where TLA is captured in config
@@ -117,7 +122,9 @@ async function createAccount(options) {
         // This is expected to error because the account shouldn't exist
         const account = await near.account(options.accountId);
         await account.state();
-        throw new Error(`Sorry, account '${options.accountId}' already exists.`);
+        if(process.env['NEAR_USE_TX_PARSER'] == 'undefined' || process.env['NEAR_USE_TX_PARSER'] == "STACK_TRACE"){
+            throw new Error(`Sorry, account '${options.accountId}' already exists.`);
+        }
     } catch (e) {
         if (!e.message.includes('does not exist while viewing')) {
             throw e;
@@ -136,7 +143,9 @@ async function createAccount(options) {
     try {
         const response = await near.createAccount(options.accountId, publicKey);
         inspectResponse.prettyPrintResponse(response, options);
-        console.log(`Account ${options.accountId} for network "${options.networkId}" was created.`);
+        //console.log(JSON.stringify(response,null,3));
+
+        //console.log(`Account ${options.accountId} for network "${options.networkId}" was created.`);
         
     } catch(error) {
         if (error.type === 'RetriesExceeded') {
@@ -145,6 +154,7 @@ async function createAccount(options) {
             console.warn('to confirm creation. Keyfile for this account has been saved.');
         } else {
             if (!options.usingLedger) await near.connection.signer.keyStore.removeKey(options.networkId, options.accountId);
+            //console.log(error);
             throw error;
         }
     }

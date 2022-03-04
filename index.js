@@ -17,6 +17,7 @@ const inspectResponse = require('./utils/inspect-response');
 const eventtracking = require('./utils/eventtracking');
 const checkCredentials = require('./utils/check-credentials');
 const {askYesNoQuestion} = require('./utils/readline');
+const TXParser = require('../near-tx-parser');
 
 // TODO: Fix promisified wrappers to handle error properly
 
@@ -205,8 +206,11 @@ exports.viewAccount = async function (options) {
     if (state && state.amount) {
         state['formattedAmount'] = utils.format.formatNearAmount(state.amount);
     }
-    console.log(`Account ${options.accountId}`);
-    console.log(inspectResponse.formatResponse(state));
+    let txp = new TXParser();
+    await txp.parse(state);    
+    // console.log(`Account ${options.accountId}`);
+    // console.log(state);
+    // console.log(inspectResponse.formatResponse(state));
 };
 
 exports.deleteAccount = async function (options) {
