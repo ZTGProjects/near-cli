@@ -4,6 +4,7 @@ const connect = require('../utils/connect');
 const { KeyPair } = require('near-api-js');
 const inspectResponse = require('../utils/inspect-response');
 const checkCredentials = require('../utils/check-credentials');
+const TXParser = require('../../near-tx-parser');
 // Top-level account (TLA) is testnet for foo.alice.testnet
 const TLA_MIN_LENGTH = 32;
 
@@ -138,15 +139,11 @@ async function createAccount(options) {
         console.log(`Saving key to '${keyFilePath}'`);
         await near.connection.signer.keyStore.setKey(options.networkId, options.accountId, keyPair);
     }
-    
-    // Create account
     try {
-        const response = await near.createAccount(options.accountId, publicKey);
-        inspectResponse.prettyPrintResponse(response, options);
-        //console.log(JSON.stringify(response,null,3));
-
+        await near.createAccount(options.accountId, publicKey);
+        //inspectResponse.prettyPrintResponse(response, options);
         //console.log(`Account ${options.accountId} for network "${options.networkId}" was created.`);
-        
+
     } catch(error) {
         if (error.type === 'RetriesExceeded') {
             console.warn('Received a timeout when creating account, please run:');
@@ -154,8 +151,6 @@ async function createAccount(options) {
             console.warn('to confirm creation. Keyfile for this account has been saved.');
         } else {
             if (!options.usingLedger) await near.connection.signer.keyStore.removeKey(options.networkId, options.accountId);
-            //console.log(error);
-            throw error;
         }
     }
 }
